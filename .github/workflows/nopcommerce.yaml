@@ -1,0 +1,13 @@
+name: nopcommerceworkflow
+on:
+  push: 
+    branches:
+      - develop
+jobs:
+  dotnet_publish:
+    runs-on: 'selfhosted'
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+      - name: this is my dotnet publish command 
+        run: dotnet publish -c Release src/Presentation/Nop.web/Nop.Web.csproj -o demo 
