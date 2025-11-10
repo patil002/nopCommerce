@@ -10,4 +10,4 @@ jobs:
       - name: code checkout
         uses: actions/checkout@v4
       - name: this is my dotnet publish command 
-        run: dotnet publish -c Release src/Presentation/Nop.web/Nop.Web.csproj -o demo 
+        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
