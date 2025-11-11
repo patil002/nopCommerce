@@ -1,48 +1,44 @@
 name: nopcommerceworkflow
-
 on:
   push:
     branches:
       - develop
 
 jobs:
-  dotnet_publish:
+  build_and_push:
     runs-on: ubuntu-latest
-
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_REGION: us-east-1
+      AWS_ACCOUNT_ID: 123456789012          # 🔹 Replace with your AWS Account ID
       ECR_REPOSITORY: nopcommerce-app
+      DOTNET_OUTPUT_DIR: demo
 
     steps:
-      # Step 1 - Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2 - Publish .NET app
-      - name: Publish .NET application
-        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-      # Step 3 - Configure AWS credentials
+      - name: Publish .NET app
+        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o ${{ env.DOTNET_OUTPUT_DIR }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Step 4 - Login to ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # Step 5 - Build and Push Docker Image
       - name: Build and Push Docker image to ECR
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
-            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+        run: |
+          IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
+          echo "Building image: $IMAGE_URI"
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
