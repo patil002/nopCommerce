@@ -40,5 +40,5 @@ jobs:
         run: |
           IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
           echo "Building image: $IMAGE_URI"
-          docker build -t $IMAGE_URI .
+          docker build -t $IMAGE_URI -f src/Presentation/Nop.Web/Dockerfile .
           docker push $IMAGE_URI
